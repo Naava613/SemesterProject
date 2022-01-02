@@ -7,11 +7,13 @@
 int assertEqual(int expected, int actual);
 
 int myMallocTest(); 
-int works = 0; 
+//int works = 0; 
 int myMallocTest(sizeRequested){
     char my_memory[20];
     mem_init(my_memory, 20);
-    assertEqual(20, sizeof(my_memory));
+    if (20 != sizeof(my_memory)) {
+        return 1;
+    } 
     
     void* buffer = my_malloc(sizeRequested); 
     // create test char[] of size sizeRequested to store in that buffer.
@@ -28,19 +30,12 @@ int myMallocTest(sizeRequested){
     
 }
 
-int assertEqual(int expected, int actual) {
-    if (expected == actual) {
-        return 0;
-    }
-    return 1;
-}
-
-works = mem_init(20); //return one if successful
+//works = mem_init(20); //return one if successful
 
 int my_malloc_16(){ 
-
+    myMallocTest(16);
 }
 
 int my_malloc_1(){
-
+    myMallocTest(1);
 }
