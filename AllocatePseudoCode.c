@@ -38,17 +38,24 @@ struct blockSizes freeBlocksList;  //create a type of the sturcture blockSizes w
         initializeLists(my_memory, my_mem_size); 
  }
 
- //Function to create block lists
- void initializeLists(my_memory, my_mem_size);
+ //Function to create and set block lists from the beginning
+ void addFirstPositionsNode(my_memory, my_mem_size);
 
- void initializeLists(my_memory, my_mem_size, free == 1){
+ void addFirstPositionsNode(my_memory, my_mem_size, blocks = freeBlocksList){
+        // first create firstPositions struct
+
+        // see if blockSizes exists?
+        // if it does not, then create blockSizes struct
+            // set nn  and pn pointers accordingly
+        // set the address of blockSizes to 
+        
         addressMM.firstPositions = my_memory;
         nextNode.firstPositions = NULL;
         prevNode.FirstPositions = NULL;
         //maybe don't need the .blockSize here?
         //how do you make this function useable for both free and allocated?
         //would you just pass that into the parameters of the function?
-        freeBlocksList = my_mem_size;
+        freeBlocks = 
         addressFP.freeBlocksList = firstPositions;
         //Do I need to initialize prev and next nodes here? nextNode.freeBlocksList 
  }
@@ -63,11 +70,11 @@ void *my_malloc(unsigned size) {
     }
 }
 
-
-
 void removeNode(addressFP){
-
-
+    
+currentNode.prevNode.nextNode = currentNode.nextNode;
+currentNode.nextNode.prevNode - currentNode.prevNode;
+currentNode = NULL;
 }
 
 void removeFree(addressFP){ //when allocate memory, it’s not free anymore
@@ -81,31 +88,56 @@ removeNode(addressFP);
 if (addressFP.blockSizes == NULL){
     removeNode(addressFP);
 }
+void addAllocated();
 //void unless return pointer to new memory
-void addAllocated()
+void addAllocated(unsigned int requestedSize, unsigned int addressInMyMemory) {
 // Iterate through linkedList pointed to by allocatedBlocks until find first node that is greater than or equal to sizeRequested
-while (allocatedBlocks.blockSizes != NULL){
-    if (blockSize.blockSizes >= sizeRequested){
-        firstLayerCurrentNode = currentNode   // firstLayerCurrentNode = first node >= sizeRequested
+    if (allocatedBlocks == -1) {
+        // create blockSizes struct
+        // set the block_size to requestedSize
     }
-    else{
-    currentNode = currentNode.nextNode
-}}
+    firstLayerCurrentNode = *allocatedBlocks;
+    // find the first layer (blockSizes) struct that is closest (but not less than the requestedSize)
+    while (firstLayerCurrentNode != NULL){
+        if (firstLayerCurrentNode.block_size >= sizeRequested){
+            break;
+        }
+        else{
+            firstLayerCurrentNode = firstLayerCurrentNode.nextNode;
+        }
+    
+    }
+    if (firstLayerCurrentNode.block_size != sizeRequested) {
+        // create blockSizes struct
+        newAllocatedData = malloc(sizeof(blockSizes));
+        newAllocatedData.blockSize = sizeRequested;
+        firstLayerCurrentNode.previousNode.nextNode = newAllocatedData
+        newAllocatedData.previousNode = firstLayerCurrentNode.previousNode; 
+        firstLayerCurrentNode.previousNode = newAllocatedData;
+        newAllocatedData.nextNode = firstLayerCurrentNode;
+        firstLayerCurrentNode = newAllocatedData;
+    }
+    
+    if (blockSizes.blockSize != sizeRequested){
+        // allocate new blockSizes struct
+        allocatedBlocks = my_malloc(sizeRequested);
+        firstLayerCurrentNode.previousNode.nextNode = blockSizes;
+        blockSizes.previousNode = firstLayerCurrentNode.previousNode; 
+        firstLayerCurrentNode.previousNode = allocatedBlocks; 
+        blockSizes.nextNode = firstLayerCurrentNode; 
+        firstLayerCurrentNode = blockSizes;
+    }
 
-if (blockSizes.blockSize != sizeRequested){
-// allocate new blockSizes struct
-allocatedBlocks.blockSizes = my_malloc(sizeRequested)
-firstLayerCurrentNode.previousNode.nextNode = blockSizes
-blockSizes.previousNode = firstLayerCurrentNode.previousNode 
-firstLayerCurrentNode.previousNode = allocatedBlocks.blockSizes 
-blockSizes.nextNode = firstLayerCurrentNode 
-firstLayerCurrentNode = blockSizes
 // Allocate new FirstPositions struct and set my_memory_address to *addressFirstPositions.address (blue A)
-// Set positions
-// firstPositions.nextNode = firstLayerCurrentNode.address (yellow A)
-// firstPositions.nextNode.previousNode = firstPositions
-// firstLayerCurrentNode.address = firstPositions
-// Return *addressFirstPositions.address (blue A)
+    char newFP = malloc(sizeof(firstPositions));
+    my_memory_address = *addressFirstPositions.address //(blue A)
+
+// create firstPositions
+    firstPositions.nextNode = firstLayerCurrentNode.address; //(yellow A)
+    firstPositions.nextNode.previousNode = firstPositions;
+    firstLayerCurrentNode.address = firstPositions;
+
+return *addressFirstPositions.address; //(blue A)
 
 void mem_get_stats(mem_stats_ptr mem_stats_ptr);
 
