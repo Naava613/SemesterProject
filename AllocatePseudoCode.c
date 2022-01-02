@@ -11,11 +11,18 @@ struct blockSizes
     int prevNode; 
 };
 
-
+//make a linked list to hold addresses that have blockSize free spaces
+struct firstPositions
+{
+   int addressMM; //address in my_memory space
+   int nextNode;
+   int prevNode;  
+}
 // Int addressFirstPositions = Find firstPosition - O(N)
 // Iterate through linkedList pointed to by freeBlocks
 // Return the yellow A of the first one that is greater than or equal to sizeRequested.
 
+//how do you check for the last node?
 struct blockSizes freeBlocksList;
 while (freeBlocksList.nextNode != NULL){
     if (freeBlocksList.addressFP >= sizeRequested){
@@ -23,10 +30,18 @@ while (freeBlocksList.nextNode != NULL){
     }
 }
 
+void removeNode(addressFP){
+    
 
-// Void remove_free(addressFirstPositions) – when allocate memory, it’s not free anymore
+}
+
+void removeFree(addressFP){ //when allocate memory, it’s not free anymore
 // Set the address in the upper layer to not point to firstPosition anymore
-// removeNode(addressFirstPositions)
+if (firstPositions.nextNode != Null){
+    blockSizes.addressFP = firstPosition.nextNode
+}
+removeNode(addressFP);
+
 // If no more firstPositions (for that block size), then remove blockSizes – call removeNode()
 // Void addAllocated() – void unless return pointer to new memory
 // Iterate through linkedList pointed to by allocatedBlocks until find first node that is greater than or equal to sizeRequested
