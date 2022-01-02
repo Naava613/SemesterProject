@@ -1,7 +1,29 @@
 //Allocate(sizeRequested):
+int freeBlocks;//??
+int allocatedBlocks; //??
+
+//make a linked list to hold the addresses of places with free/allocated space
+struct blockSizes 
+{
+    int block_size;
+    blockSizes addressFP; //address of firstPositions
+    int nextNode;
+    int prevNode; 
+};
+
+
 // Int addressFirstPositions = Find firstPosition - O(N)
 // Iterate through linkedList pointed to by freeBlocks
 // Return the yellow A of the first one that is greater than or equal to sizeRequested.
+
+struct blockSizes freeBlocksList;
+while (freeBlocksList.nextNode != NULL){
+    if (freeBlocksList.addressFP >= sizeRequested){
+        return addressFP
+    }
+}
+
+
 // Void remove_free(addressFirstPositions) – when allocate memory, it’s not free anymore
 // Set the address in the upper layer to not point to firstPosition anymore
 // removeNode(addressFirstPositions)
