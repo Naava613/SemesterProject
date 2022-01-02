@@ -2,22 +2,24 @@
 int freeBlocks;//??
 int allocatedBlocks; //??
 
-//make a linked list to hold the addresses of places with free/allocated space
-struct blockSizes 
-{
-    int block_size;
-    blockSizes addressFP; //address of firstPositions
-    int nextNode;
-    int prevNode; 
-};
-
 //make a linked list to hold addresses that have blockSize free spaces
-struct firstPositions
+typedef struct firstPositions
 {
    int addressMM; //address in my_memory space
    int nextNode;
    int prevNode;  
-}
+};
+
+//make a linked list to hold the addresses of places with free/allocated space
+struct blockSizes 
+{
+    int block_size;
+    firstPositions addressFP; //address of firstPositions
+    int nextNode;
+    int prevNode; 
+};
+
+
 // Int addressFirstPositions = Find firstPosition - O(N)
 // Iterate through linkedList pointed to by freeBlocks
 // Return the yellow A of the first one that is greater than or equal to sizeRequested.
@@ -31,7 +33,7 @@ while (freeBlocksList.nextNode != NULL){
 }
 
 void removeNode(addressFP){
-    
+
 
 }
 
