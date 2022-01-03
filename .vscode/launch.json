@@ -40,12 +40,13 @@
         "type": "cppdbg",
         "request": "launch",
         "program": "${fileDirname}/${fileBasenameNoExtension}",
-        "args": [],
+        "args": ["-g"],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",
         "environment": [],
         "externalConsole": false,
         "MIMode": "gdb",
+        "miDebuggerPath": "",
         "setupCommands": [
             {
                 "description": "Enable pretty-printing for gdb",
