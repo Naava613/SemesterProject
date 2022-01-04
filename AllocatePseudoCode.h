@@ -23,7 +23,7 @@ struct BlockSizesStruct
 };
 
 void mem_init(unsigned char *my_memory, unsigned int my_mem_size);
-unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned int addressInMyMemory, int isFreeBlocks);
+unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned char* addressInMyMemory, int isFreeBlocks);
 
 //Function to create and set block lists from the beginning
 struct BlockSizesStruct *addressFirstPositions(unsigned int sizeRequested, int isFreeBlocks);

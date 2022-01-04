@@ -20,12 +20,14 @@ int num_blocks_used;
  void mem_init(unsigned char *my_memory, unsigned int my_mem_size) {
      	// ask the os to allocate memory of size my_mem_size. 
         //Set that memory to *my_memory
-		the_memory = calloc(1,my_mem_size);
-        my_memory = the_memory;
+		the_memory = calloc(1,my_mem_size); //set everything to zero with calloc - for us to use
+        my_memory = the_memory;  //return this to the client
         //initializeFreeBlocks();
-        addToBlockSizes(my_mem_size, *my_memory, 1);
+        addToBlockSizes(my_mem_size, *my_memory, 1);   //start free list so my_malloc will work
  }
 
+ //retrieve first layer node that is greater than or equal to size requested - should work for either list
+ //return first layer node or NULL if issue of not enough memory
  struct BlockSizesStruct *addressFirstPositions(unsigned int sizeRequested, int isFreeBlocks) {
      struct BlockSizesStruct *oneBlockSizeStruct;
      if (isFreeBlocks == 1) {
@@ -51,22 +53,26 @@ int num_blocks_used;
      return NULL; // not enough memory. Usually throw an OutOfMemory exception.
  }
 
-
+//putting everything together
 void *my_malloc(unsigned size) {
     struct BlockSizesStruct *firstLayerNode = addressFirstPositions(size, 1);
     unsigned int memory_address = addToBlockSizes(size, firstLayerNode->addressFP->addressMM, 0); //return blue A
+    unsigned int sizeUnused = firstLayerNode->blockSize - size;
+    unsigned int addressMyMem = firstLayerNode->addressFP->addressMM;
     struct MemoryPositionsStruct *tempStruct = firstLayerNode->addressFP->nextNode;
-if (BlockSizesStruct.addressFP!=NULL){
-    removeFree(firstLayerNode, firstLayerNode.addressFP); //cleanup
-    // we don't want to use the blue A here beacuse want whole node, correct?
-}
-        //removeNodeFP(firstLayerNode->addressFP);
-    //firstLayerNode->addressFP = tempStruct;
-    //if(firstLayerNode->addressFP == NULL) {
-     //   removeNodeB(firstLayerNode);
-    //}
+    if (firstLayerNode->addressFP == NULL) {
+        removeFree(firstLayerNode, firstLayerNode->addressFP); //cleanup
+    }
+    // add to the free list however much of the space is not being used - only allocate how much was requested,
+    // but the amount requested was probably less than total amount free.
+    addToBlockSizes(sizeUnused, addressMyMem + size, 1);
 
-//same layer clean up - reset pointers of next and prev nodes and set cur node to null
+    //return the address to the client
+    return (void *) addressMyMem;
+
+ }
+
+//first layer node clean up - reset pointers of next and prev nodes and set cur node to null
 void removeNodeB(struct BlockSizesStruct *currentNode){
 
 currentNode->prevNode->nextNode = currentNode->nextNode;
@@ -76,12 +82,12 @@ int num_blocks_used = num_blocks_used - 1;    //update stats
 int num_blocks_free = num_blocks_free + 1;
 }
 
+//second layer node clean up
 void removeNodeFP(struct MemoryPositionsStruct *currentNode){
-
     currentNode->prevNode->nextNode = currentNode->nextNode;
     currentNode->nextNode->prevNode = currentNode->prevNode;
     free(currentNode);
-//note: don't update stats here becuase this is just internal things, not part of the actual free blocks list
+//note: don't update stats here because this is just internal things, not part of the actual free blocks list
 }
 
 //does more cleanup, esp across the dif layers
@@ -108,11 +114,12 @@ unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned int addressInM
 //        newBlockSizes->blockSize = sizeRequested;
 //        isFreeBlocks = newBlockSizes;
 //    }
+//figure out if free vs allocated list working with now
     struct BlockSizesStruct *firstLayerCurrentNode = isFreeBlocks == 1 ? freeBlocks : allocatedBlocks;
 
     // find the first layer (BlockSizesStruct) struct that is closest to (but not less than) the sizeRequested
     while (firstLayerCurrentNode != NULL){
-        if (firstLayerCurrentNode->blockSize >= sizeRequested){                               //why have to do .blockSize here?**************************************
+        if (firstLayerCurrentNode->blockSize >= sizeRequested){    //works because keeping the list in ascending order
             break;
         }
         else {
@@ -120,8 +127,8 @@ unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned int addressInM
         }
     }
 
-    // If the blockSize is not equal to the sizeRequested, then create a new BlockSizesStruct with blockSize of sizeRequested and set pointers accordingly.
-    // The reason for the pointers is to
+    // If the blockSize is not equal to the sizeRequested, then create a new BlockSizesStruct with blockSize of
+    // sizeRequested and set pointers accordingly.
     // -> is the equivalent to *pointer with a dot for retrieving a field. It dereferences the pointer and gets the field
     //   firstLayerCurrentNode->blockSize == (*firstLayerCurrentNode).blockSize
     if (firstLayerCurrentNode == NULL || firstLayerCurrentNode->blockSize != sizeRequested) {
@@ -130,6 +137,7 @@ unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned int addressInM
         newAllocatedData->blockSize = sizeRequested;
         newAllocatedData->nextNode = firstLayerCurrentNode;
         newAllocatedData->addressFP = NULL;
+
         if (firstLayerCurrentNode != NULL) {
             newAllocatedData->prevNode = firstLayerCurrentNode->prevNode;
             firstLayerCurrentNode->prevNode->nextNode = newAllocatedData;
@@ -144,7 +152,7 @@ unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned int addressInM
            freeBlocks = firstLayerCurrentNode;
        }
    } else {
-       if (allocatedBlocks == NULL) {                      ///need this if-statement?
+       if (allocatedBlocks == NULL) {
            allocatedBlocks = firstLayerCurrentNode;
        }
    }
@@ -165,16 +173,16 @@ unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned int addressInM
 }
 
 //stats of the code
-void mem_get_stats(mem_stats_ptr mem_stats_ptr);
-
-void mem_get_stats(mem_stats_ptr mem_stats_ptr){
-mem_stats_ptr = struct //????
-typedef struct  {
- int num_blocks_used;
- int num_blocks_free;
- int smallest_block_free;
- int smallest_block_used;  //loop through linkedList - first node should be set to this and last node set to largest blocks...
- int largest_block_free;
- int largest_block_used;
-} mem_stats_struct, *mem_stats_ptr;
-
+//void mem_get_stats(mem_stats_ptr mem_stats_ptr);
+//
+//void mem_get_stats(mem_stats_ptr mem_stats_ptr) {
+//mem_stats_ptr = struct //????
+//    typedef struct {
+//        int num_blocks_used;
+//        int num_blocks_free;
+//        int smallest_block_free;
+//        int smallest_block_used;  //loop through linkedList - first node should be set to this and last node set to largest blocks...
+//        int largest_block_free;
+//        int largest_block_used;
+//    } mem_stats_struct, *mem_stats_ptr;
+//}
