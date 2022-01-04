@@ -56,7 +56,7 @@ void *my_malloc(unsigned size) {
     struct BlockSizesStruct *firstLayerNode = addressFirstPositions(size, 1);
     unsigned int memory_address = addToBlockSizes(size, firstLayerNode->addressFP->addressMM, 0); //return blue A
     struct MemoryPositionsStruct *tempStruct = firstLayerNode->addressFP->nextNode;
-if (addressFP!=NULL){
+if (BlockSizesStruct.addressFP!=NULL){
     removeFree(firstLayerNode, firstLayerNode.addressFP); //cleanup
     // we don't want to use the blue A here beacuse want whole node, correct?
 }
@@ -66,43 +66,24 @@ if (addressFP!=NULL){
      //   removeNodeB(firstLayerNode);
     //}
 
-
-
-
- }
-//        if(freeBlocksList == NULL) {
-//    ????
-//    }
-//    //call to calloc to get sizeRequested amount of memory
-//    my_memory = calloc(1, size)
-//
-//    // allocate requested memory: check where to put it into BlockSizesStruct
-//    addToBlockSizes(size)
-//    // and then put into first positions - adding it to each linkedList respectively.
-//
-//    // update free blocks linked lists properly
-//
-//
-//    }
-//}
 //same layer clean up - reset pointers of next and prev nodes and set cur node to null
-
 void removeNodeB(struct BlockSizesStruct *currentNode){
 
 currentNode->prevNode->nextNode = currentNode->nextNode;
 currentNode->nextNode->prevNode = currentNode->prevNode;
 free(currentNode);
-int num_blocks_used = num_blocks_used - 1;
+int num_blocks_used = num_blocks_used - 1;    //update stats
 int num_blocks_free = num_blocks_free + 1;
 }
+
 void removeNodeFP(struct MemoryPositionsStruct *currentNode){
 
     currentNode->prevNode->nextNode = currentNode->nextNode;
     currentNode->nextNode->prevNode = currentNode->prevNode;
     free(currentNode);
-    int num_blocks_used = num_blocks_used - 1;
-    int num_blocks_free = num_blocks_free + 1;
+//note: don't update stats here becuase this is just internal things, not part of the actual free blocks list
 }
+
 //does more cleanup, esp across the dif layers
 void removeFree(struct BlockSizesStruct *currentFirstLayerNode, struct MemoryPositionsStruct *currentSecondLayerNode) { //when allocate memory, it’s not free anymore
 // Set the address in the upper layer to not point to firstPosition anymore
@@ -116,7 +97,8 @@ void removeFree(struct BlockSizesStruct *currentFirstLayerNode, struct MemoryPos
     }
     removeNodeFP(currentSecondLayerNode);
 }
-//void unless return pointer to new memory
+
+
 unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned int addressInMyMemory, int isFreeBlocks) {
 // Iterate through linkedList pointed to by allocatedBlocks until find first node that is greater than or equal to sizeRequested
 //    if (isFreeBlocks == NULL) {
@@ -130,7 +112,7 @@ unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned int addressInM
 
     // find the first layer (BlockSizesStruct) struct that is closest to (but not less than) the sizeRequested
     while (firstLayerCurrentNode != NULL){
-        if (firstLayerCurrentNode->blockSize >= sizeRequested){
+        if (firstLayerCurrentNode->blockSize >= sizeRequested){                               //why have to do .blockSize here?**************************************
             break;
         }
         else {
@@ -143,7 +125,7 @@ unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned int addressInM
     // -> is the equivalent to *pointer with a dot for retrieving a field. It dereferences the pointer and gets the field
     //   firstLayerCurrentNode->blockSize == (*firstLayerCurrentNode).blockSize
     if (firstLayerCurrentNode == NULL || firstLayerCurrentNode->blockSize != sizeRequested) {
-        // create BlockSizesStruct struct
+        // create BlockSizesStruct struct for that size
         struct BlockSizesStruct *newAllocatedData = calloc(1, sizeof(struct BlockSizesStruct));
         newAllocatedData->blockSize = sizeRequested;
         newAllocatedData->nextNode = firstLayerCurrentNode;
@@ -154,8 +136,7 @@ unsigned int addToBlockSizes(unsigned int sizeRequested, unsigned int addressInM
             firstLayerCurrentNode->prevNode = newAllocatedData;
         }
         firstLayerCurrentNode = newAllocatedData;
-        num_blocks_used += 1;
-        num_blocks_free = num_blocks_free -1
+       
     }
 
    if (isFreeBlocks == 1) {
