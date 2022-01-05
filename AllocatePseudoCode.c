@@ -10,11 +10,12 @@ static struct BlockSizesStruct *allocatedBlocks;
 // Iterate through linkedList pointed to by freeBlocks
 // Return the yellow A of the first one that is greater than or equal to sizeRequested.
 
-int largest_block_free;
  void mem_init(unsigned char *my_memory, unsigned int my_mem_size) {
      	// ask the os to allocate memory of size my_mem_size. 
         //Set that memory to *my_memory
-		the_memory = calloc(1,my_mem_size); //set everything to zero with calloc - for us to use
+		freeBlocks = NULL;
+        allocatedBlocks = NULL;
+        the_memory = calloc(1,my_mem_size); //set everything to zero with calloc - for us to use
         my_memory = the_memory;  //return this to the client
         //initializeFreeBlocks();
         addToBlockSizes(my_mem_size, my_memory, 1);   //start free list so my_malloc will work
@@ -54,13 +55,14 @@ int largest_block_free;
 //can change to char*
 void *my_malloc(unsigned size) {
     struct BlockSizesStruct *firstLayerNode = addressFirstPositions(size, 1);
+    if (firstLayerNode == NULL) {
+        return "Not enough memory";
+    }
     unsigned char *memory_address = firstLayerNode->addressFP->addressMM;
     addToBlockSizes(size, memory_address, 0); //return blue A
     unsigned int sizeUnused = firstLayerNode->blockSize - size;
     struct MemoryPositionsStruct *tempStruct = firstLayerNode->addressFP->nextNode;
-    if (firstLayerNode->addressFP == NULL) {
-        removeFree(firstLayerNode, firstLayerNode->addressFP); //cleanup
-    }
+    removeFree(firstLayerNode, firstLayerNode->addressFP); //cleanup
     // add to the free list however much of the space is not being used - only allocate how much was requested,
     // but the amount requested was probably less than total amount free.
     addToBlockSizes(sizeUnused, memory_address + size, 1);
@@ -81,16 +83,22 @@ if (currentNode->prevNode != NULL) {
 if (currentNode->nextNode != NULL){
     currentNode->nextNode->prevNode = currentNode->prevNode;
 }
+if (freeBlocks == currentNode) {
+    freeBlocks = currentNode->nextNode;
+}
+else if (allocatedBlocks == currentNode) {
+    allocatedBlocks = currentNode->nextNode;
+}
 free(currentNode);
-int num_blocks_used = num_blocks_used - 1;    //update stats
-int num_blocks_free = num_blocks_free + 1;
 }
 
 //second layer node clean up
 void removeNodeFP(struct MemoryPositionsStruct *currentNode){
-    currentNode->prevNode->nextNode = currentNode->nextNode;
-    currentNode->nextNode->prevNode = currentNode->prevNode;
-    free(currentNode);
+    if (currentNode != NULL) {
+        currentNode->prevNode->nextNode = currentNode->nextNode;
+        currentNode->nextNode->prevNode = currentNode->prevNode;
+        free(currentNode);
+    }
 //note: don't update stats here because this is just internal things, not part of the actual free blocks list
 }
 
@@ -171,36 +179,46 @@ void addToBlockSizes(unsigned int sizeRequested, unsigned char *addressInMyMemor
 }
 int num_blocks_used;
 int num_blocks_free;
-int smallest_block_free;
 int smallest_block_used;  //loop through linkedList - first node should be set to this and last node set to largest blocks...
 int largest_block_free;
 int largest_block_used;
 
-void mem_get_stats(mem_stats_struct mem_stats_ptr) {
-//mem_stats_ptr = struct //????
+void mem_get_stats(mem_stats_ptr mem_stats_ptr) {
 
-//loop through whole linked list to get to the end - where the largest block size is
-//before start looping, set a variable to be the beg of the linked list.
-// The size of this node that is the variable will be what you set smallest_block_free to be.
-// Then loop through the linked list until you get to the end. Set that last node's size to be the largest_block_free.
-// increment count of free blocks while looping through the list
+    // get stats for the free list
+    mem_stats_ptr->smallest_block_free = 0;
+    mem_stats_ptr->largest_block_free = 0;
+    mem_stats_ptr->num_blocks_free = 0;
 
-//(unsigned int sizeRequested, unsigned char *addressInMyMemory, int isFreeBlocks) {
-//figure out if free vs allocated list working with now
-        struct BlockSizesStruct *firstLayerCurrentNode = isFreeBlocks; //how do you tell it to loop through the free list
-    smallest_block_free = firstLayerCurrentNode->blockSize; //since list is in order, the first node will be the smallest
+    if (freeBlocks != NULL) {
+        // Since list is in order, the first node will be the smallest
+        mem_stats_ptr->smallest_block_free = freeBlocks->blockSize;
+
         //loop through the linked list until the end, and set the last node's size to be largest_block_free
         // keep track of how many free blocks there are all together
-         while (firstLayerCurrentNode != NULL){
-            num_blocks_free = num_blocks_free + 1;
-             largest_block_free = firstLayerCurrentNode->blockSize; //if wait until after the loop it would be null
-             firstLayerCurrentNode = firstLayerCurrentNode->nextNode;
-            }
+        struct BlockSizesStruct *firstLayerCurrentNode = freeBlocks;
+        while (firstLayerCurrentNode != NULL) {
+            mem_stats_ptr->num_blocks_free = mem_stats_ptr->num_blocks_free + 1;
+            mem_stats_ptr->largest_block_free = freeBlocks->blockSize; //if wait until after the loop it would be null
+            firstLayerCurrentNode = firstLayerCurrentNode->nextNode;
+        }
+    }
 
-        //do the same exact thing for the allocated list, just switch variable names appropriately
+    // get stats for the allocated list
+    mem_stats_ptr->smallest_block_used = 0;
+    mem_stats_ptr->largest_block_used = 0;
+    mem_stats_ptr->num_blocks_used = 0;
+    if (allocatedBlocks != NULL) {
+        // Since list is in order, the first node will be the smallest
+        mem_stats_ptr->smallest_block_used = allocatedBlocks->blockSize;
 
+        //loop through the linked list until the end, and set the last node's size to be largest_block_free
+        // keep track of how many free blocks there are all together
+        struct BlockSizesStruct *firstLayerCurrentNode = allocatedBlocks;
+        while (firstLayerCurrentNode != NULL) {
+            mem_stats_ptr->num_blocks_used = mem_stats_ptr->num_blocks_used + 1;
+            mem_stats_ptr->largest_block_used = firstLayerCurrentNode->blockSize; //if wait until after the loop it would be null
+            firstLayerCurrentNode = firstLayerCurrentNode->nextNode;
+        }
+    }
  }
-
-//mem_stats_ptr.largest_block_free = largest_block;
-
-    //}

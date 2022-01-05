@@ -144,6 +144,27 @@ int myMallocManyTimesSMALL(){
 int my_malloc_16(){
     setUp(20);
     myMallocTest(16);
+    mem_stats_struct *memStatsStruct = calloc(1, sizeof(mem_stats_struct));
+    mem_get_stats(memStatsStruct);
+    if (memStatsStruct->num_blocks_free != 1) {
+        return 1;
+    }
+    if (memStatsStruct->smallest_block_free != 4) {
+        return 1;
+    }
+    if (memStatsStruct->largest_block_free != 4) {
+        return 1;
+    }
+    if (memStatsStruct->num_blocks_used != 1) {
+        return 1;
+    }
+    if (memStatsStruct->largest_block_used != 16) {
+        return 1;
+    }
+    if (memStatsStruct->smallest_block_used != 16) {
+        return 1;
+    }
+    return 0;
 }
 
 int my_malloc_1(){

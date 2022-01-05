@@ -42,7 +42,7 @@ typedef struct {
     int largest_block_free;
     int largest_block_used;
 } mem_stats_struct, *mem_stats_ptr;
-void mem_get_stats(mem_stats_struct mem_stats_ptr);
+void mem_get_stats(mem_stats_ptr mem_stats_ptr);
 
 
 #endif //NAAVA_S_FINAL_ALLOCATEPSEUDOCODE_H
