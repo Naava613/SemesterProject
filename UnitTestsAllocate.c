@@ -9,27 +9,31 @@
 //
 int assertEqual(int expected, int actual);
 
-int myMallocTest(); 
-//int works = 0; 
-int myMallocTest(unsigned int sizeRequested){
-    unsigned char my_memory[20];
-    mem_init(my_memory, 20);
-    if (20 != sizeof(my_memory)) {
+int setUp(unsigned int memorySize);
+int setUp(unsigned int memorySize){
+    unsigned char my_memory[memorySize];
+    mem_init(my_memory, memorySize);
+    if (memorySize != sizeof(my_memory)) {
         return 1;
-    } 
-    
-    //void* buffer = my_malloc(sizeRequested);
+    }
+}
+
+int myMallocTest(unsigned int sizeRequested);
+
+int myMallocTest(unsigned int sizeRequested){
+
+    void* buffer = my_malloc(sizeRequested);
     // create test char[] of size sizeRequested to store in that buffer.
     // Then read from buffer and ensure that the value read == the value written
     char hello[sizeRequested];
     for (int i = 0; i < sizeRequested; i++) {
         hello[i] = i;
     }
-    //buffer = hello;
-    //if (strcmp(hello, buffer) == 0) {
-    //    return 0;
-    //}
-    return 0;
+    buffer = hello;
+    if (strcmp(hello, buffer) == 0) {
+        return 0;
+    }
+    return 1;
     
 }
 
@@ -46,10 +50,10 @@ int addressFirstPositionsTest() {
     return 0;
 }
 
-int removeNodesTestBeg();
+int removeNodesTest();
 
-//get some already allocated space in my_memory and try to remove a node from the beg, middle, and end
-int removeNodesTestBeg(){
+//get some already allocated space in my_memory and try to remove a node - in general
+int removeNodesTest(){
     //create a current node to pass into the function and check if it works
     struct BlockSizesStruct *currentNode = calloc(1, sizeof(struct BlockSizesStruct));
     struct BlockSizesStruct *nextNode = calloc(1, sizeof(struct BlockSizesStruct));
@@ -68,39 +72,120 @@ int removeNodesTestBeg(){
         return 1;
     }
 
-    printf("it's null!\n");
+    printf("it's null - general test!\n");
     free(nextNode);
     free(previousNode);
-    free(currentNode); //
     return 0;
 }
 
-int addAllocatedTest() {
+int removeBegNode();
 
+//get some already allocated space in my_memory and try to remove a node from the beg
+int removeBegNode(){
+    //create a current node to pass into the function and check if it works
+    struct BlockSizesStruct *currentNode = calloc(1, sizeof(struct BlockSizesStruct));
+    struct BlockSizesStruct *nextNode = calloc(1, sizeof(struct BlockSizesStruct));
+    struct BlockSizesStruct *previousNode = NULL;
+
+    currentNode->nextNode = nextNode;
+    currentNode->prevNode = previousNode;
+    nextNode->prevNode = currentNode;
+    removeNodeB(currentNode);
+    //char pos = addressFirstPositions(struct oneBlockSizeStruct *currentNode);
+    if (nextNode->prevNode != NULL) {
+        return 1;
+    }
+
+
+    printf("it's null!\n");
+    free(nextNode);
+    return 0;
 }
 
-//works = mem_init(20); //return one if successful
+int removeLastNode();
 
-int my_malloc_16(){ 
+//get some already allocated space in my_memory and try to remove a node from the beg
+int removeLastNode(){
+    //create a current node to pass into the function and check if it works
+    struct BlockSizesStruct *currentNode = calloc(1, sizeof(struct BlockSizesStruct));
+    struct BlockSizesStruct *nextNode = NULL;
+    struct BlockSizesStruct *previousNode = calloc(1, sizeof(struct BlockSizesStruct));
+
+    currentNode->nextNode = nextNode;
+    currentNode->prevNode = previousNode;
+
+    removeNodeB(currentNode);
+
+    if (nextNode != NULL) {
+        return 1;
+    }
+
+    free(nextNode);
+    return 0;
+}
+
+
+int myMallocManyTimesBIG();
+int myMallocManyTimesBIG(){
+    setUp(50);
+    myMallocTest(5);
+    myMallocTest(3);
+    myMallocTest(7);
+}
+
+int myMallocManyTimesSMALL();
+int myMallocManyTimesSMALL(){
+    setUp(10);
+    myMallocTest(5);
+    myMallocTest(3);
+    myMallocTest(7);
+}
+
+int my_malloc_16(){
+    setUp(20);
     myMallocTest(16);
 }
 
 int my_malloc_1(){
+    setUp(20);
     myMallocTest(1);
 }
 
 int main(void) {
     printf("Hello world!\n");
-    //if (my_malloc_1() != 0) {
-    //   return -1;
-    //}
+
+    if (my_malloc_1() != 0) {
+       return -1;
+    }
     printf("After my_malloc_1 test\n");
-    //if (my_malloc_16() != 0) {
-    //    return -1;
-    //}    printf("After my_malloc_16 test\n");
+    if (my_malloc_16() != 0) {
+        return -1;
+    }
+    printf("After my_malloc_16 test\n");
     if (addressFirstPositionsTest() != 0) {
         return -1;
     }
     printf("After addressFirstPositionsTest test\n");
 
+    if (removeNodesTest() != 0){
+        return -1;
+    }
+    if (removeBegNode() != 0){
+        return -1;
+    }
+
+    if (removeLastNode() != 0){
+        return -1;
+    }
+
+    printf("after all remove nodes tests\n");
+
+    //test running my_malloc a few times and being able to insert into each one
+    if (myMallocManyTimesSMALL() != 0){
+        return -1;
+    }
+    if (myMallocManyTimesBIG() != 0){
+        return -1;
+    }
+    printf("finished all tests!");
 }
