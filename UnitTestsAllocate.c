@@ -18,55 +18,6 @@ int setUp(unsigned int memorySize){
     }
 }
 
-int mem_stats_check(int expected_num_blocks_used, int expected_num_blocks_free, int expected_smallest_block_free,
-                    int expected_smallest_block_used, int expected_largest_block_free, int expected_largest_block_used) {
-    mem_stats_struct *memStatsStruct = calloc(1, sizeof(mem_stats_struct));
-    mem_get_stats(memStatsStruct);
-    if (memStatsStruct->num_blocks_free != expected_num_blocks_free) {
-        return 1;
-    }
-    if (memStatsStruct->smallest_block_free != expected_smallest_block_free) {
-        return 1;
-    }
-    if (memStatsStruct->largest_block_free != expected_largest_block_free) {
-        return 1;
-    }
-    if (memStatsStruct->num_blocks_used != expected_num_blocks_used) {
-        return 1;
-    }
-    if (memStatsStruct->largest_block_used != expected_largest_block_used) {
-        return 1;
-    }
-    if (memStatsStruct->smallest_block_used != expected_smallest_block_used) {
-        return 1;
-    }
-    return 0;
-}
-void print_stats(char *prefix);
-void print_stats(char *prefix) {
-
-    mem_stats_struct mem_stats;
-
-    mem_get_stats(&mem_stats);
-
-    printf("mem stats: %s: %d free blocks, %d used blocks, free blocks: smallest=%d largest=%d, used blocks: smallest=%d largest=%d\n",
-
-           prefix,
-
-           mem_stats.num_blocks_free,
-
-           mem_stats.num_blocks_used,
-
-           mem_stats.smallest_block_free,
-
-           mem_stats.largest_block_free,
-
-           mem_stats.smallest_block_used,
-
-           mem_stats.largest_block_used);
-
-}
-
 int myMallocTest(unsigned int sizeRequested);
 
 int myMallocTest(unsigned int sizeRequested){
@@ -193,61 +144,26 @@ int myMallocManyTimesSMALL(){
 int my_malloc_16(){
     setUp(20);
     myMallocTest(16);
-    mem_stats_check(1, 1, 4, 16, 4, 16);
-    return 0;
-}
-
-//
-//int my_freeTest(memorySize){
-//    unsigned char my_memory[memorySize];
-//    mem_init(my_memory, memorySize);
-//
-//int my_freeTest(int memorySize, int reqSize1, int reqSize2, int reqSize3, int freeReq1, int freeReq2){
-//    unsigned char my_memory[memorySize];
-//    mem_init(my_memory, memorySize);
-//    my_malloc(reqSize1);
-//    mem_stats_check(1, 1, memorySize - reqSize1, reqSize1, 10, 10)
-//    my_malloc(reqSize2);
-//    my_free(freeReq1);
-//    my_malloc(reqSize3);
-//    my_free(freeReq2);
-//    mem_stats_check()
-
-int my_freeTest(){
-    unsigned char my_memory[50];
-    mem_init(my_memory, 50);
-    void *firstAddress = my_malloc(10);
-    mem_stats_check(1, 1, 40, 10, 40, 10);
-    void *SecondAddress = my_malloc(7);
-    int status = mem_stats_check(2, 1, 33, 7, 33, 10);
-    printf("stats: %d\n", status);
-
-    my_free(firstAddress);
-    status = mem_stats_check(1, 2, 10, 7, 33, 7);
-    printf("stat after my free: %d\n", status);
-    my_malloc(20);
-    my_free(SecondAddress);
-    status = mem_stats_check(1, 2, 13, 20, 17, 20);
-    printf("status after another free is called: %d\n", status);
-    return 0;
-}
-
-int my_freeTest2(){
-    unsigned char my_memory[50];
-    mem_init(my_memory, 50);
-    void *firstAddress = my_malloc(10);
-    mem_stats_check(1, 1, 40, 10, 40, 10);
-    void *SecondAddress = my_malloc(7);
-    int status = mem_stats_check(2, 1, 33, 7, 33, 10);
-    printf("2 stats: %d\n", status);
-
-    my_free(firstAddress);
-    status = mem_stats_check(1, 2, 10, 7, 33, 7);
-    printf("2 stat after my free: %d\n", status);
-    void *ThirdAddress = my_malloc(20);
-    my_free(ThirdAddress);
-    status = mem_stats_check(1, 2, 10, 7, 33, 7);
-    printf("status after freeing the third block: %d\n", status);
+    mem_stats_struct *memStatsStruct = calloc(1, sizeof(mem_stats_struct));
+    mem_get_stats(memStatsStruct);
+    if (memStatsStruct->num_blocks_free != 1) {
+        return 1;
+    }
+    if (memStatsStruct->smallest_block_free != 4) {
+        return 1;
+    }
+    if (memStatsStruct->largest_block_free != 4) {
+        return 1;
+    }
+    if (memStatsStruct->num_blocks_used != 1) {
+        return 1;
+    }
+    if (memStatsStruct->largest_block_used != 16) {
+        return 1;
+    }
+    if (memStatsStruct->smallest_block_used != 16) {
+        return 1;
+    }
     return 0;
 }
 
@@ -256,7 +172,7 @@ int my_malloc_1(){
     myMallocTest(1);
 }
 
-int runTests(void) {
+int main(void) {
     printf("Hello world!\n");
 
     if (my_malloc_1() != 0) {
@@ -292,73 +208,5 @@ int runTests(void) {
     if (myMallocManyTimesBIG() != 0){
         return -1;
     }
-    printf("ready for free test!");
-
-    if (my_freeTest()!=0) {
-        return -1;
-    }
-
-    if (my_freeTest2()!=0) {
-        return -1;
-    }
-
-    printf("finished all tests!\n");
-    print_stats("Trial Run");
-
-    return 0;
-    }
-
-int main(int argc, char **argv) {
-
-    printf("Sample main from Prof. Shamash\n\n");
-
-    unsigned int global_mem_size = 1024 * 1024;
-
-    unsigned char *global_memory = malloc(global_mem_size);
-
-
-    mem_init(global_memory, global_mem_size);
-
-    print_stats("init");
-
-
-    unsigned char *ptr_array[10];
-
-    unsigned int sizes[] = {50, 20, 20, 20, 50, 0};
-
-
-    for (int i = 0; sizes[i] != 0; i++) {
-
-        char buf[1024];
-
-        ptr_array[i] = my_malloc(sizes[i]);
-
-
-        sprintf(buf, "after iteration %d size %d", i, sizes[i]);
-
-        print_stats(buf);
-
-    }
-
-
-    my_free(ptr_array[1]);
-    print_stats("after free #1");
-
-
-    my_free(ptr_array[3]);
-    print_stats("after free #3");
-
-
-    my_free(ptr_array[2]);
-    print_stats("after free #2");
-
-
-    my_free(ptr_array[0]);
-    print_stats("after free #0");
-
-
-    my_free(ptr_array[4]);
-    print_stats("after free #4");
-
-    runTests();
+    printf("finished all tests!");
 }
