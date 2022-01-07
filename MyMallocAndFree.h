@@ -1,7 +1,3 @@
-//
-// Created by admin on 1/2/2022.
-//
-
 #ifndef NAAVA_S_FINAL_MYMALLOCANDFREE_H
 #define NAAVA_S_FINAL_MYMALLOCANDFREE_H
 
