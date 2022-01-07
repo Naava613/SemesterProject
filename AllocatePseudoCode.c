@@ -1,5 +1,6 @@
 #include <malloc.h>
 #include "AllocatePseudoCode.h"
+#include <stdio.h>
 
 unsigned char *the_memory;
 
@@ -106,7 +107,6 @@ void removeNodeFP(struct MemoryPositionsStruct *currentNode) {
         }
         free(currentNode);
     }
-//note: don't update stats here because this is just internal things, not part of the actual free blocks list
 }
 
 //does more cleanup, esp across the dif layers
@@ -169,7 +169,7 @@ void addToBlockSizes(unsigned int sizeRequested, unsigned char *addressInMyMemor
                 }
             }
         } else {
-            // append node to linked list
+            // append node to linked list - got to end because no node in list is greater than or equal to sizeReqeusted
             if (previousNode != NULL) {
                 previousNode->nextNode = newAllocatedData;
                 newAllocatedData->prevNode = previousNode;
@@ -218,19 +218,25 @@ void mem_get_stats(mem_stats_ptr mem_stats_ptr) {
 
     if (freeBlocks != NULL) {
         // Since list is in order, the first node will be the smallest
+        //remember: freeBlocks is the int that points to first of the free blocks list
         mem_stats_ptr->smallest_block_free = freeBlocks->blockSize;
-
+        //int wentToWhileLoop = 0;
         //loop through the linked list until the end, and set the last node's size to be largest_block_free
         // keep track of how many free blocks there are all together
         struct BlockSizesStruct *firstLayerCurrentNode = freeBlocks;
         while (firstLayerCurrentNode != NULL) {
-            mem_stats_ptr->num_blocks_free = mem_stats_ptr->num_blocks_free + 1;
+            //mem_stats_ptr->num_blocks_free = mem_stats_ptr->num_blocks_free + 1;
             mem_stats_ptr->largest_block_free = firstLayerCurrentNode->blockSize; //if wait until after the loop it would be null
             struct MemoryPositionsStruct *secondLayerCurrentNode = firstLayerCurrentNode->addressFP;
             while (secondLayerCurrentNode != NULL) {
-                mem_stats_ptr->num_blocks_used = mem_stats_ptr->num_blocks_used + 1;
+                mem_stats_ptr->num_blocks_free = mem_stats_ptr->num_blocks_free + 1;   //I'm changing this to free from used
                 secondLayerCurrentNode = secondLayerCurrentNode->nextNode;
+                //wentToWhileLoop = 1;
             }
+//            ////maybe TAKE THIS OUT?!
+//            if (wentToWhileLoop == 1){
+//                mem_stats_ptr->num_blocks_free = mem_stats_ptr->num_blocks_free - 1; //because it counts an extra when goes to second layer since already counted the top layer
+
             firstLayerCurrentNode = firstLayerCurrentNode->nextNode;
         }
     }
@@ -258,14 +264,15 @@ void mem_get_stats(mem_stats_ptr mem_stats_ptr) {
     }
 }
 
-// returns the memory to the pool passed to mem_init().
+// returns the memory to the pool passed to mem_init()
+//mem_pointer is pointer to the beg of the memory position of the block that's being freed - ie. the blueA
 void my_free(void *mem_pointer) {
-    //mem_pointer is pointer to the beg of the memory position of the block that's being freed - ie. the blueA
-    //depth-first search
     struct BlockSizesStruct *allocatedFirstLayerNode = allocatedBlocks;
     struct MemoryPositionsStruct *allocatedSecondLayerNode;
     unsigned int block_size_to_free = 0;
     int foundIt = 0;
+
+    //depth-first search
     while (allocatedFirstLayerNode != NULL && !foundIt) {
         allocatedSecondLayerNode = allocatedFirstLayerNode->addressFP;
         struct BlockSizesStruct *nextAllocFirstLayerNode = allocatedFirstLayerNode->nextNode;
@@ -279,7 +286,22 @@ void my_free(void *mem_pointer) {
                     removeNodeFP(allocatedSecondLayerNode);
                     removeNodeB(allocatedFirstLayerNode);
                 } else {
-                    removeNodeFP(allocatedSecondLayerNode);
+                    //save secondlayernode just in case
+                    struct MemoryPositionsStruct *secondLayerNodeToDelete = allocatedSecondLayerNode;
+                    //need to set the first layer node to point to a node in the second layer, other than the one we're deleting now.
+
+                    if (allocatedSecondLayerNode->nextNode != NULL && allocatedSecondLayerNode->prevNode == NULL) {
+                        allocatedFirstLayerNode->addressFP = allocatedSecondLayerNode->nextNode;
+                        //reset pointers within the second layer. prev pointer to be null
+                        allocatedSecondLayerNode->nextNode->prevNode = NULL;
+                        allocatedSecondLayerNode = nextAllocSecondLayerNode;
+
+                    }
+                    else if (allocatedSecondLayerNode->nextNode != NULL && allocatedSecondLayerNode->prevNode != NULL){
+                        allocatedSecondLayerNode->nextNode->prevNode = allocatedSecondLayerNode->prevNode;
+                        allocatedSecondLayerNode->prevNode->nextNode = nextAllocSecondLayerNode;
+                        }
+                    removeNodeFP(secondLayerNodeToDelete);
                 }
                 foundIt = 1;
             }
@@ -350,4 +372,23 @@ void coalesce(unsigned char *mem_pointer, unsigned int block_size_to_free) {
 //call function to coalesce the free spaces together
 
 
+}
+
+void printLinkedLists();
+void printLinkedLists() {
+    struct BlockSizesStruct *allocatedFirstLayerNode = allocatedBlocks;
+    struct MemoryPositionsStruct *allocatedSecondLayerNode;
+
+    while (allocatedFirstLayerNode != NULL) {
+        printf("F: %d", allocatedFirstLayerNode->blockSize);
+        allocatedSecondLayerNode = allocatedFirstLayerNode->addressFP;
+        struct BlockSizesStruct *nextAllocFirstLayerNode = allocatedFirstLayerNode->nextNode;
+
+        while (allocatedSecondLayerNode != NULL) {
+            //struct MemoryPositionsStruct *nextAllocSecondLayerNode = allocatedSecondLayerNode->nextNode;
+            printf("->S: %d  ", allocatedSecondLayerNode);
+            allocatedSecondLayerNode = allocatedSecondLayerNode->nextNode;
+        }
+        allocatedFirstLayerNode = nextAllocFirstLayerNode;
+    }
 }

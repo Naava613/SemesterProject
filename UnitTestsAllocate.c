@@ -197,22 +197,6 @@ int my_malloc_16(){
     return 0;
 }
 
-//
-//int my_freeTest(memorySize){
-//    unsigned char my_memory[memorySize];
-//    mem_init(my_memory, memorySize);
-//
-//int my_freeTest(int memorySize, int reqSize1, int reqSize2, int reqSize3, int freeReq1, int freeReq2){
-//    unsigned char my_memory[memorySize];
-//    mem_init(my_memory, memorySize);
-//    my_malloc(reqSize1);
-//    mem_stats_check(1, 1, memorySize - reqSize1, reqSize1, 10, 10)
-//    my_malloc(reqSize2);
-//    my_free(freeReq1);
-//    my_malloc(reqSize3);
-//    my_free(freeReq2);
-//    mem_stats_check()
-
 int my_freeTest(){
     unsigned char my_memory[50];
     mem_init(my_memory, 50);
@@ -346,14 +330,19 @@ int main(int argc, char **argv) {
 
 
     my_free(ptr_array[3]);
+    //printf("Another LINKED LISTS!!!!!!!");
+    //printLinkedLists();
     print_stats("after free #3");
 
 
     my_free(ptr_array[2]);
     print_stats("after free #2");
 
-
+printf("Before free LINKED LISTS!!!!!!!");
+    printLinkedLists();
     my_free(ptr_array[0]);
+    printf("LINKED LISTS!!!!!!!");
+    printLinkedLists();
     print_stats("after free #0");
 
 
