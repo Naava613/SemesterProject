@@ -2,13 +2,15 @@
 #include "AllocatePseudoCode.h"
 #include <stdio.h>
 
-// define/initialize needed things
+// define or initialize needed things
 unsigned char *the_memory;
 
 static struct BlockSizesStruct *freeBlocks;
 static struct BlockSizesStruct *allocatedBlocks;
 
 void coalesce(unsigned char *mem_pointer, unsigned int block_size_to_free);
+int cleanUpForCoalesce(struct BlockSizesStruct *currentFirstLayerNode, struct MemoryPositionsStruct *currentSecondLayerNode);
+
 
 void mem_init(unsigned char *my_memory, unsigned int my_mem_size) {
     // ask the os to allocate memory of size my_mem_size
@@ -17,7 +19,6 @@ void mem_init(unsigned char *my_memory, unsigned int my_mem_size) {
     allocatedBlocks = NULL;
     the_memory = calloc(1, my_mem_size); //set everything to zero with calloc - for easier use
     my_memory = the_memory;  //return this to the client
-
     addToBlockSizes(my_mem_size, my_memory, 1);   //start free list so my_malloc will work
 
 }
@@ -306,7 +307,6 @@ void my_free(void *mem_pointer) {
 }
 
 //look through my_memory array and put together all the free spaces
-int cleanUpForCoalesce(struct BlockSizesStruct *currentFirstLayerNode, struct MemoryPositionsStruct *currentSecondLayerNode);
 int cleanUpForCoalesce(struct BlockSizesStruct *currentFirstLayerNode, struct MemoryPositionsStruct *currentSecondLayerNode) {
     if (currentFirstLayerNode->addressFP == currentSecondLayerNode) {   //if the firstLayer block is pointing to the second layer block
         if (currentSecondLayerNode->nextNode == NULL) {                    // and secondLayerBlock is the only block for that size
@@ -326,24 +326,30 @@ int cleanUpForCoalesce(struct BlockSizesStruct *currentFirstLayerNode, struct Me
     }
 }
 void coalesce(unsigned char *mem_pointer, unsigned int block_size_to_free) {
-    //start from first position (addressMM):
-    //long long startingAddress = &mem_pointer - &the_memory;
+    //start from first position (addressMM)
     struct BlockSizesStruct *currentFirstLayerNode = freeBlocks;
     struct MemoryPositionsStruct *currentSecondLayerNode;
     unsigned int newSize = block_size_to_free; //size of new block to be added to the list is at least size of block being freed
 
-    int numberAdjacentBlocksFree = 0;
+    int numberAdjacentBlocksFree = 0;                     //to keep track and help us not keep going in loop too many times
+    unsigned char *earliest_mem_address = mem_pointer;   //need the correct mem_pointer for later calculations
+
+    //loop through the linked lists, checking for free blocks next to the one you just freed
     while (currentFirstLayerNode != NULL && numberAdjacentBlocksFree < 2) {
         struct BlockSizesStruct *nextFreeFirstLayerNode = currentFirstLayerNode->nextNode;
         currentSecondLayerNode = currentFirstLayerNode->addressFP;
+
+        //loop through second layer
         while (currentSecondLayerNode != NULL) {
-            // before block
+
+            // check before the block that was just freed
             struct MemoryPositionsStruct *nextFreeSecondLayerNode = currentSecondLayerNode->nextNode;
             if (mem_pointer == currentSecondLayerNode->addressMM + currentFirstLayerNode->blockSize) {
                 //add blockSize to size of the thing you just freed
                 newSize = newSize + currentFirstLayerNode->blockSize;
                 cleanUpForCoalesce(currentFirstLayerNode, currentSecondLayerNode);
                 numberAdjacentBlocksFree++;
+                earliest_mem_address = currentSecondLayerNode->addressMM;
             }
                 // check after freed block
             else if (mem_pointer + block_size_to_free == currentSecondLayerNode->addressMM) {
@@ -351,12 +357,15 @@ void coalesce(unsigned char *mem_pointer, unsigned int block_size_to_free) {
                 cleanUpForCoalesce(currentFirstLayerNode, currentSecondLayerNode);
                 numberAdjacentBlocksFree++;
             }
+            //update to keep looping
             currentSecondLayerNode = nextFreeSecondLayerNode;
         }
+        //update so it will keep looping
         currentFirstLayerNode = nextFreeFirstLayerNode;
 
     }
-        addToBlockSizes(newSize, mem_pointer, 1);
+        //add the new info to the free list (if isFreeBlocks == 1, it means yes, it's free)
+        addToBlockSizes(newSize, earliest_mem_address, 1);
 
 }
 
