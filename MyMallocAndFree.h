@@ -1,3 +1,7 @@
+//
+// Created by admin on 1/2/2022.
+//
+
 #ifndef NAAVA_S_FINAL_MYMALLOCANDFREE_H
 #define NAAVA_S_FINAL_MYMALLOCANDFREE_H
 
@@ -43,4 +47,4 @@ typedef struct {
 void mem_get_stats(mem_stats_ptr mem_stats_ptr);
 
 void printLinkedLists();
-#endif //NAAVA_S_FINAL_ALLOCATEPSEUDOCODE_H
+#endif //NAAVA_S_FINAL_MYMALLOCANDFREE_H
