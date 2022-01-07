@@ -1,9 +1,5 @@
-//
-// Created by admin on 1/2/2022.
-//
-
-#ifndef NAAVA_S_FINAL_ALLOCATEPSEUDOCODE_H
-#define NAAVA_S_FINAL_ALLOCATEPSEUDOCODE_H
+#ifndef NAAVA_S_FINAL_MYMALLOCANDFREE_H
+#define NAAVA_S_FINAL_MYMALLOCANDFREE_H
 
 //make a linked list to hold addresses that have blockSize free spaces
 struct MemoryPositionsStruct
