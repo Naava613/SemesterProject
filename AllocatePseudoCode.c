@@ -2,6 +2,7 @@
 #include "AllocatePseudoCode.h"
 #include <stdio.h>
 
+// define/initialize needed things
 unsigned char *the_memory;
 
 static struct BlockSizesStruct *freeBlocks;
@@ -9,39 +10,37 @@ static struct BlockSizesStruct *allocatedBlocks;
 
 void coalesce(unsigned char *mem_pointer, unsigned int block_size_to_free);
 
-// Int addressFirstPositions = Find firstPosition - O(N)
-// Iterate through linkedList pointed to by freeBlocks
-// Return the yellow A of the first one that is greater than or equal to sizeRequested.
-
 void mem_init(unsigned char *my_memory, unsigned int my_mem_size) {
-    // ask the os to allocate memory of size my_mem_size.
+    // ask the os to allocate memory of size my_mem_size
     //Set that memory to *my_memory
     freeBlocks = NULL;
     allocatedBlocks = NULL;
-    the_memory = calloc(1, my_mem_size); //set everything to zero with calloc - for us to use
+    the_memory = calloc(1, my_mem_size); //set everything to zero with calloc - for easier use
     my_memory = the_memory;  //return this to the client
-    //initializeFreeBlocks();
-    addToBlockSizes(my_mem_size, my_memory, 1);   //start free list so my_malloc will work
 
-    //mem_stats_struct *mem_stats_ptr = calloc(1, sizeof(mem_stats_struct));
+    addToBlockSizes(my_mem_size, my_memory, 1);   //start free list so my_malloc will work
 
 }
 
-//retrieve first layer node that is greater than or equal to size requested - should work for either list
-//return first layer node or NULL if issue of not enough memory
+
+//returns first layer node or NULL if issue of not enough memory
 struct BlockSizesStruct *addressFirstPositions(unsigned int sizeRequested, int isFreeBlocks) {
     struct BlockSizesStruct *oneBlockSizeStruct;
+    //check which list we are looking at and set appropriately
     if (isFreeBlocks == 1) {
         if (freeBlocks == NULL) {
             return NULL; // If is FreeBlocks, then out of memory.
         }
         oneBlockSizeStruct = freeBlocks;
+
     } else {
         if (allocatedBlocks == NULL) {
             return NULL; // Otherwise, the memory has already been freed.
         }
         oneBlockSizeStruct = allocatedBlocks;
     }
+
+    //go through list to find the correct node, if any exist
     while (oneBlockSizeStruct->nextNode != NULL) {
         if (oneBlockSizeStruct->blockSize >= sizeRequested) {
             return oneBlockSizeStruct;
@@ -55,7 +54,6 @@ struct BlockSizesStruct *addressFirstPositions(unsigned int sizeRequested, int i
 }
 
 //putting everything together
-//can change to char*
 void *my_malloc(unsigned size) {
     struct BlockSizesStruct *firstLayerNode = addressFirstPositions(size, 1);
     if (firstLayerNode == NULL) {
@@ -66,18 +64,15 @@ void *my_malloc(unsigned size) {
     unsigned int sizeUnused = firstLayerNode->blockSize - size;
     struct MemoryPositionsStruct *tempStruct = firstLayerNode->addressFP->nextNode;
     removeFree(firstLayerNode, firstLayerNode->addressFP); //cleanup
-    // add to the free list however much of the space is not being used - only allocate how much was requested,
-    // but the amount requested was probably less than total amount free.
+
+    // add to the free list however much of the space is not being used
     addToBlockSizes(sizeUnused, memory_address + size, 1);
 
     //return the address to the client
     return memory_address;
-
-    //pointer to memory location to beg of what was allocated
-
 }
 
-//first layer node clean up - reset pointers of next and prev nodes and set cur node to null
+//first layer nodes clean up - reset pointers of next and prev nodes and set cur node to null
 void removeNodeB(struct BlockSizesStruct *currentNode) {
     if (currentNode->prevNode != NULL) {
         currentNode->prevNode->nextNode = currentNode->nextNode;
@@ -109,17 +104,14 @@ void removeNodeFP(struct MemoryPositionsStruct *currentNode) {
     }
 }
 
-//does more cleanup, esp across the dif layers
-void removeFree(struct BlockSizesStruct *currentFirstLayerNode,
-                struct MemoryPositionsStruct *currentSecondLayerNode) { //when allocate memory, it’s not free anymore
-// Set the address in the upper layer to not point to firstPosition anymore
-//Set the address in the upper layer to point to firstPositions.nextNode,
-// if it’s null, remove firstLayer node
-//yellow A = currentSecondLayer node
-//do .addressFP to get blue A
+//does more cleanup, specifically across different layers
+// notes on the lingo here: yellow A = currentSecondLayer node and ->addressFP means blue A in the diagram
+void removeFree(struct BlockSizesStruct *currentFirstLayerNode, struct MemoryPositionsStruct *currentSecondLayerNode) {
+
+// Set the address in the upper layer to not point to firstPosition anymore, but rather to point to firstPositions.nextNode
     currentSecondLayerNode = currentSecondLayerNode->nextNode;
-    if (currentSecondLayerNode ==
-        NULL) { //if there are no more nodes on the lower leveled linked list, remove the upperlevel node
+    // if it’s null, remove firstLayer node
+    if (currentSecondLayerNode ==  NULL) {
         removeNodeB(currentFirstLayerNode);
     }
     removeNodeFP(currentSecondLayerNode);
@@ -127,7 +119,7 @@ void removeFree(struct BlockSizesStruct *currentFirstLayerNode,
 
 
 void addToBlockSizes(unsigned int sizeRequested, unsigned char *addressInMyMemory, int isFreeBlocks) {
-//figure out if free vs allocated list working with now
+//figure out if working with free vs allocated list now
     struct BlockSizesStruct *firstLayerCurrentNode = isFreeBlocks == 1 ? freeBlocks : allocatedBlocks;
     struct BlockSizesStruct *previousNode = NULL;
 
@@ -148,6 +140,8 @@ void addToBlockSizes(unsigned int sizeRequested, unsigned char *addressInMyMemor
     if (firstLayerCurrentNode == NULL || firstLayerCurrentNode->blockSize != sizeRequested) {
         // create BlockSizesStruct struct for that size
         struct BlockSizesStruct *newAllocatedData = calloc(1, sizeof(struct BlockSizesStruct));
+
+        //reset nodes
         newAllocatedData->blockSize = sizeRequested;
         newAllocatedData->nextNode = firstLayerCurrentNode;
         newAllocatedData->addressFP = NULL;
@@ -175,6 +169,7 @@ void addToBlockSizes(unsigned int sizeRequested, unsigned char *addressInMyMemor
                 newAllocatedData->prevNode = previousNode;
             }
         }
+        //update to keep looping
         firstLayerCurrentNode = newAllocatedData;
 
     }
@@ -203,12 +198,6 @@ void addToBlockSizes(unsigned int sizeRequested, unsigned char *addressInMyMemor
 
 }
 
-int num_blocks_used;
-int num_blocks_free;
-int smallest_block_used;  //loop through linkedList - first node should be set to this and last node set to largest blocks...
-int largest_block_free;
-int largest_block_used;
-
 void mem_get_stats(mem_stats_ptr mem_stats_ptr) {
 
     // get stats for the free list
@@ -220,23 +209,18 @@ void mem_get_stats(mem_stats_ptr mem_stats_ptr) {
         // Since list is in order, the first node will be the smallest
         //remember: freeBlocks is the int that points to first of the free blocks list
         mem_stats_ptr->smallest_block_free = freeBlocks->blockSize;
-        //int wentToWhileLoop = 0;
+
         //loop through the linked list until the end, and set the last node's size to be largest_block_free
         // keep track of how many free blocks there are all together
         struct BlockSizesStruct *firstLayerCurrentNode = freeBlocks;
         while (firstLayerCurrentNode != NULL) {
-            //mem_stats_ptr->num_blocks_free = mem_stats_ptr->num_blocks_free + 1;
             mem_stats_ptr->largest_block_free = firstLayerCurrentNode->blockSize; //if wait until after the loop it would be null
             struct MemoryPositionsStruct *secondLayerCurrentNode = firstLayerCurrentNode->addressFP;
             while (secondLayerCurrentNode != NULL) {
                 mem_stats_ptr->num_blocks_free = mem_stats_ptr->num_blocks_free + 1;   //I'm changing this to free from used
                 secondLayerCurrentNode = secondLayerCurrentNode->nextNode;
-                //wentToWhileLoop = 1;
             }
-//            ////maybe TAKE THIS OUT?!
-//            if (wentToWhileLoop == 1){
-//                mem_stats_ptr->num_blocks_free = mem_stats_ptr->num_blocks_free - 1; //because it counts an extra when goes to second layer since already counted the top layer
-
+            //update to keep looping
             firstLayerCurrentNode = firstLayerCurrentNode->nextNode;
         }
     }
@@ -259,6 +243,7 @@ void mem_get_stats(mem_stats_ptr mem_stats_ptr) {
                 mem_stats_ptr->num_blocks_used = mem_stats_ptr->num_blocks_used + 1;
                 secondLayerCurrentNode = secondLayerCurrentNode->nextNode;
             }
+            //update to keep looping
             firstLayerCurrentNode = firstLayerCurrentNode->nextNode;
         }
     }
@@ -279,17 +264,20 @@ void my_free(void *mem_pointer) {
 
         while (allocatedSecondLayerNode != NULL && !foundIt) {
             struct MemoryPositionsStruct *nextAllocSecondLayerNode = allocatedSecondLayerNode->nextNode;
+            //find the right node to free
             if (allocatedSecondLayerNode->addressMM == mem_pointer) {
-                //check if there are other nodes on the second layer to know if should set currentFirstLayer node to null
                 block_size_to_free = allocatedFirstLayerNode->blockSize;
+                //check if there are other nodes on the second layer to know if should set currentFirstLayer node to null
+
+                //if no other nodes, just remove that node
                 if (allocatedSecondLayerNode->nextNode == NULL && allocatedSecondLayerNode->prevNode == NULL) {
                     removeNodeFP(allocatedSecondLayerNode);
                     removeNodeB(allocatedFirstLayerNode);
                 } else {
-                    //save secondlayernode just in case
+                    //save secondlayernode so you can free it correctly later
                     struct MemoryPositionsStruct *secondLayerNodeToDelete = allocatedSecondLayerNode;
-                    //need to set the first layer node to point to a node in the second layer, other than the one we're deleting now.
 
+                    //if it's the first node of second layer
                     if (allocatedSecondLayerNode->nextNode != NULL && allocatedSecondLayerNode->prevNode == NULL) {
                         allocatedFirstLayerNode->addressFP = allocatedSecondLayerNode->nextNode;
                         //reset pointers within the second layer. prev pointer to be null
@@ -297,18 +285,22 @@ void my_free(void *mem_pointer) {
                         allocatedSecondLayerNode = nextAllocSecondLayerNode;
 
                     }
+                    //if it's the middle node of second layer
                     else if (allocatedSecondLayerNode->nextNode != NULL && allocatedSecondLayerNode->prevNode != NULL){
                         allocatedSecondLayerNode->nextNode->prevNode = allocatedSecondLayerNode->prevNode;
                         allocatedSecondLayerNode->prevNode->nextNode = nextAllocSecondLayerNode;
                         }
                     removeNodeFP(secondLayerNodeToDelete);
                 }
-                foundIt = 1;
+                foundIt = 1;   //so that we come out of the loop properly
             }
+            //update to keep looping
             allocatedSecondLayerNode = nextAllocSecondLayerNode;
         }
+        //update to keep looping
         allocatedFirstLayerNode = nextAllocFirstLayerNode;
     }
+    // put together the fragmented pieces
     coalesce(mem_pointer, block_size_to_free);
 
 }
@@ -320,12 +312,15 @@ int cleanUpForCoalesce(struct BlockSizesStruct *currentFirstLayerNode, struct Me
         if (currentSecondLayerNode->nextNode == NULL) {                    // and secondLayerBlock is the only block for that size
             removeNodeFP(currentSecondLayerNode);                  // then remove corresponding blocks in both layers
             removeNodeB(currentFirstLayerNode);
-        } else if (currentSecondLayerNode->nextNode != NULL) {
+        }
+
+        else if (currentSecondLayerNode->nextNode != NULL) {
             //set firstLayerNode to point to second layer node.next and then remove node from second layer
             currentFirstLayerNode->addressFP = currentSecondLayerNode->nextNode;
             removeNodeFP(currentSecondLayerNode);
         }
     }
+
     else {
         removeNodeFP(currentSecondLayerNode);
     }
@@ -363,17 +358,11 @@ void coalesce(unsigned char *mem_pointer, unsigned int block_size_to_free) {
     }
         addToBlockSizes(newSize, mem_pointer, 1);
 
-//look for the space in the array of allocated sizes, set it to null - removeNodeFP (reset pointers of next and prev nodes)
-
-//if no more second layer nodes, then removeNodeB
-
-//add it back to free sizes (maybe can use addToBlockSizes function, set it to one)
-
-//call function to coalesce the free spaces together
-
-
 }
 
+
+// Utility function used during debugging to get a visual of the linked lists
+// Not really needed for this whole malloc/free program.
 void printLinkedLists();
 void printLinkedLists() {
     struct BlockSizesStruct *allocatedFirstLayerNode = allocatedBlocks;

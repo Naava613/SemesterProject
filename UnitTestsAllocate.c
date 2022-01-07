@@ -3,12 +3,10 @@
 #include <stdlib.h>
 #include "AllocatePseudoCode.h"
 
-//what to test:
-// 1. check if the amount of space requested is now being used
-//   This means that freeBlockSizes shouldn't that amount free, but it could be it does if another chunk has been broken down into that same amoutn of free space, so maybe you should just check MemoryPositionsStruct after and before and make sure the linkedList before is longer than the linkedList after?
-//
 int assertEqual(int expected, int actual);
 
+
+//utility function to be used below
 int setUp(unsigned int memorySize);
 int setUp(unsigned int memorySize){
     unsigned char my_memory[memorySize];
@@ -330,24 +328,18 @@ int main(int argc, char **argv) {
 
 
     my_free(ptr_array[3]);
-    //printf("Another LINKED LISTS!!!!!!!");
-    //printLinkedLists();
     print_stats("after free #3");
 
 
     my_free(ptr_array[2]);
     print_stats("after free #2");
 
-printf("Before free LINKED LISTS!!!!!!!");
-    printLinkedLists();
     my_free(ptr_array[0]);
-    printf("LINKED LISTS!!!!!!!");
-    printLinkedLists();
     print_stats("after free #0");
 
 
     my_free(ptr_array[4]);
     print_stats("after free #4");
 
-    runTests();
+    runTests();     //run my tests
 }
